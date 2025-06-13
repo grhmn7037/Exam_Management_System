@@ -1,0 +1,119 @@
+<!-- templates/schedule.html -->
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h1><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-calendar-check-fill me-2" viewBox="0 0 16 16"><path d="M4 .5a.5.5 0 0 0-1 0V1H2a2 2 0 0 0-2 2v1h16V3a2 2 0 0 0-2-2h-1V.5a.5.5 0 0 0-1 0V1H4zM16 14V5H0v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2m-5.146-5.146-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 0 1 .708-.708L7.5 10.793l2.646-2.647a.5.5 0 0 1 .708.708"/></svg> إدارة جدول الامتحانات</h1>
+        </div>
+        <div class="col-md-6 text-md-end">
+             <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#addExamFormCollapse" aria-expanded="false" aria-controls="addExamFormCollapse">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar-plus-fill me-1" viewBox="0 0 16 16"><path d="M4 .5a.5.5 0 0 0-1 0V1H2a2 2 0 0 0-2 2v1h16V3a2 2 0 0 0-2-2h-1V.5a.5.5 0 0 0-1 0V1H4zM16 14V5H0v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2M8.5 8.5V10H10a.5.5 0 0 1 0 1H8.5v1.5a.5.5 0 0 1-1 0V11H6a.5.5 0 0 1 0-1h1.5V8.5a.5.5 0 0 1 1 0"/></svg> إضافة امتحان جديد للجدول
+            </button>
+        </div>
+    </div>
+    <hr>
+
+    <!-- منطقة إضافة امتحان جديد (قابلة للطي) -->
+    <div class="collapse" id="addExamFormCollapse">
+        <div class="card card-body mb-4 shadow-sm">
+            <h3>نموذج إضافة امتحان</h3>
+            <form method="POST" action="{{ url_for('schedule_management') }}" novalidate>
+                {{ form.hidden_tag() }}
+                <div class="row g-3">
+                    {# عرض حقول الفورم كما في الردود السابقة #}
+                    <div class="col-md-4"><label for="{{ form.exam_date.id }}" class="form-label">{{ form.exam_date.label }}</label>{{ form.exam_date(class="form-control " + ('is-invalid' if form.exam_date.errors else '')) }}{% if form.exam_date.errors %}<div class="invalid-feedback">{% for error in form.exam_date.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}</div>
+                    <div class="col-md-4"><label for="{{ form.period.id }}" class="form-label">{{ form.period.label }}</label>{{ form.period(class="form-select " + ('is-invalid' if form.period.errors else '')) }}{% if form.period.errors %}<div class="invalid-feedback">{% for error in form.period.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}</div>
+                    <div class="col-md-4"><label for="{{ form.stage.id }}" class="form-label">{{ form.stage.label }}</label>{{ form.stage(class="form-select " + ('is-invalid' if form.stage.errors else '')) }}{% if form.stage.errors %}<div class="invalid-feedback">{% for error in form.stage.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}</div>
+                    <div class="col-md-6"><label for="{{ form.subject_name.id }}" class="form-label">{{ form.subject_name.label }}</label>{{ form.subject_name(class="form-control " + ('is-invalid' if form.subject_name.errors else '')) }}{% if form.subject_name.errors %}<div class="invalid-feedback">{% for error in form.subject_name.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}</div>
+                    <div class="col-md-3"><label for="{{ form.exam_type.id }}" class="form-label">{{ form.exam_type.label }}</label>{{ form.exam_type(class="form-select " + ('is-invalid' if form.exam_type.errors else '')) }}{% if form.exam_type.errors %}<div class="invalid-feedback">{% for error in form.exam_type.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}</div>
+                    <div class="col-md-3 d-flex align-items-end"><div class="form-check mb-2">{{ form.is_ministerial(class="form-check-input") }}<label class="form-check-label" for="{{ form.is_ministerial.id }}">{{ form.is_ministerial.label.text }}</label></div></div>
+                    <div class="col-md-6"><label for="{{ form.assigned_halls.id }}" class="form-label">{{ form.assigned_halls.label }}</label>{{ form.assigned_halls(class="form-control " + ('is-invalid' if form.assigned_halls.errors else '')) }}{% if form.assigned_halls.errors %}<div class="invalid-feedback">{% for error in form.assigned_halls.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}</div>
+                    <div class="col-md-6"><label for="{{ form.student_count.id }}" class="form-label">{{ form.student_count.label }}</label>{{ form.student_count(class="form-control " + ('is-invalid' if form.student_count.errors else ''), type='number') }}{% if form.student_count.errors %}<div class="invalid-feedback">{% for error in form.student_count.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}</div>
+                    <div class="col-12"><label for="{{ form.notes.id }}" class="form-label">{{ form.notes.label }}</label>{{ form.notes(class="form-control " + ('is-invalid' if form.notes.errors else '')) }}{% if form.notes.errors %}<div class="invalid-feedback">{% for error in form.notes.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}</div>
+                    <div class="col-12">{{ form.submit(class="btn btn-primary") }}</div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- منطقة عرض جدول الامتحانات -->
+    <h2><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-table me-1" viewBox="0 0 16 16"><path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm15 2h-4v3h4zm0 4h-4v3h4zm0 4h-4v3h3a1 1 0 0 0 1-1zm-5 3v-3H6v3zm-4 0v-3H2v2a1 1 0 0 0 1 1zm-4-4h4V8H2zm0-4h4V4H2zm5-3v3h4V4zm4 4H6v3h4z"/></svg> الجدول الزمني للامتحانات</h2>
+
+    {% if exams_by_date %}
+        <div class="accordion" id="scheduleAccordion">
+            {% for exam_date_obj, exams_in_day in exams_by_date.items()|sort %}
+            {% set date_str = exam_date_obj.strftime('%Y-%m-%d') %}
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="heading-{{ date_str }}">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ date_str }}" aria-expanded="false" aria-controls="collapse-{{ date_str }}">
+                    <strong>{{ exam_date_obj.strftime('%A') }} - {{ exam_date_obj.strftime('%d / %m / %Y') }}</strong>
+                    <span class="badge bg-secondary ms-auto me-2">{{ exams_in_day|length }} امتحانات</span>
+                </button>
+                </h2>
+                <div id="collapse-{{ date_str }}" class="accordion-collapse collapse" aria-labelledby="heading-{{ date_str }}" data-bs-parent="#scheduleAccordion">
+                    <div class="accordion-body p-2">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover table-bordered caption-top mb-0">
+                                <caption>امتحانات يوم {{ exam_date_obj.strftime('%d/%m/%Y') }}</caption>
+                                <thead class="table-light align-middle">
+                                    <tr><th>الفترة</th><th>المرحلة</th><th>المادة</th><th>النوع</th><th>القاعات</th><th>العدد</th><th>ملاحظات</th><th>إجراءات</th></tr>
+                                </thead>
+                                <tbody class="align-middle">
+                                {% for exam in exams_in_day %}
+                                    <tr class="{{ 'table-danger' if exam.is_ministerial else '' }}">
+                                        <td>{{ exam.period }}</td>
+                                        <td>{{ exam.stage }}</td>
+                                        <td>{{ exam.subject_name }}{% if exam.is_ministerial %}<span class="badge bg-danger ms-1">وزاري</span>{% endif %}</td>
+                                        <td>{{ exam.exam_type }}</td>
+                                        <td style="min-width: 150px;">{{ exam.assigned_halls if exam.assigned_halls else '-' }}</td>
+                                        <td>{{ exam.student_count if exam.student_count else '-' }}</td>
+                                        <td>{{ exam.notes if exam.notes else '-' }}</td>
+                                        <td class="text-nowrap">
+                                            <a href="{{ url_for('edit_exam', exam_id=exam.id) }}" class="btn btn-sm btn-outline-primary me-1" title="تعديل"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16"><path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/><path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/></svg></a>
+                                            {# فورم الحذف الفعال #}
+                                            <form action="{{ url_for('delete_exam', exam_id=exam.id) }}" method="POST" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا الامتحان نهائياً؟ لا يمكن التراجع عن هذا الإجراء.');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="حذف">
+                                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/></svg>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-warning text-center mt-3" role="alert">
+            لم يتم إضافة أي امتحانات للجدول بعد. استخدم زر "إضافة امتحان جديد" أعلاه للبدء.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // جعل فورم الإضافة يظهر إذا كانت هناك أخطاء
+    document.addEventListener('DOMContentLoaded', function() {
+        const addExamForm = document.getElementById('addExamFormCollapse');
+         if (addExamForm) {
+            const formHasErrors = addExamForm.querySelector('.is-invalid');
+            if (formHasErrors) {
+                var collapse = new bootstrap.Collapse(addExamForm, { toggle: false });
+                collapse.show();
+            }
+         }
+         // تفعيل date picker إذا احتجت
+         // try { flatpickr("#exam_date", { dateFormat: "Y-m-d", locale: "ar" }); } catch(e) { console.error("Flatpickr not found or failed to initialize."); }
+    });
+</script>
+{% endblock %}

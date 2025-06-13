@@ -1,0 +1,134 @@
+<!-- templates/edit_exam.html (الكود الكامل مع إضافة قسم رفع PDF) -->
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-pencil-fill me-2" viewBox="0 0 16 16"><path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.5.5 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11z"/></svg> تعديل بيانات الامتحان</h1>
+     <p class="text-muted">الامتحان: {{ exam.subject_name }} - مرحلة {{ exam.stage }} ({{ exam.exam_date.strftime('%Y-%m-%d') if exam.exam_date }})</p>
+    <hr>
+
+    {# === الفورم الأساسي لتعديل تفاصيل الامتحان === #}
+    <div class="card card-body mb-4 shadow-sm border-primary">
+        <h5 class="card-title">تفاصيل الامتحان الأساسية</h5>
+        <form method="POST" action="{{ url_for('edit_exam', exam_id=exam.id) }}" novalidate>
+            {{ form.hidden_tag() }}
+             <div class="row g-3">
+                 <div class="col-md-4"><label for="{{ form.exam_date.id }}" class="form-label">{{ form.exam_date.label }}</label>{{ form.exam_date(class="form-control " + ('is-invalid' if form.exam_date.errors else '')) }}{% if form.exam_date.errors %}<div class="invalid-feedback">{% for error in form.exam_date.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}</div>
+                 <div class="col-md-4"><label for="{{ form.period.id }}" class="form-label">{{ form.period.label }}</label>{{ form.period(class="form-select " + ('is-invalid' if form.period.errors else '')) }}{% if form.period.errors %}<div class="invalid-feedback">{% for error in form.period.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}</div>
+                 <div class="col-md-4"><label for="{{ form.stage.id }}" class="form-label">{{ form.stage.label }}</label>{{ form.stage(class="form-select " + ('is-invalid' if form.stage.errors else '')) }}{% if form.stage.errors %}<div class="invalid-feedback">{% for error in form.stage.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}</div>
+                 <div class="col-md-6"><label for="{{ form.subject_name.id }}" class="form-label">{{ form.subject_name.label }}</label>{{ form.subject_name(class="form-control " + ('is-invalid' if form.subject_name.errors else '')) }}{% if form.subject_name.errors %}<div class="invalid-feedback">{% for error in form.subject_name.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}</div>
+                 <div class="col-md-3"><label for="{{ form.exam_type.id }}" class="form-label">{{ form.exam_type.label }}</label>{{ form.exam_type(class="form-select " + ('is-invalid' if form.exam_type.errors else '')) }}{% if form.exam_type.errors %}<div class="invalid-feedback">{% for error in form.exam_type.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}</div>
+                 <div class="col-md-3 d-flex align-items-end"><div class="form-check mb-2">{{ form.is_ministerial(class="form-check-input") }}<label class="form-check-label" for="{{ form.is_ministerial.id }}">{{ form.is_ministerial.label.text }}</label></div></div>
+                 <div class="col-md-6"><label for="{{ form.assigned_halls.id }}" class="form-label">{{ form.assigned_halls.label }}</label>{{ form.assigned_halls(class="form-select selectpicker " + ('is-invalid' if form.assigned_halls.errors else ''), multiple=True, **{'data-actions-box':'true', 'data-selected-text-format':'count > 3', 'data-live-search':'true'}) }}{% if form.assigned_halls.errors %}<div class="invalid-feedback">{% for error in form.assigned_halls.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}</div>
+                 <div class="col-md-6"><label for="{{ form.student_count.id }}" class="form-label">{{ form.student_count.label }}</label>{{ form.student_count(class="form-control " + ('is-invalid' if form.student_count.errors else ''), type='number') }}{% if form.student_count.errors %}<div class="invalid-feedback">{% for error in form.student_count.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}</div>
+                 <div class="col-12"><label for="{{ form.notes.id }}" class="form-label">{{ form.notes.label }}</label>{{ form.notes(class="form-control " + ('is-invalid' if form.notes.errors else ''), rows=3) }}{% if form.notes.errors %}<div class="invalid-feedback">{% for error in form.notes.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}</div>
+                <div class="col-12 mt-3">
+                    {{ form.submit(class="btn btn-primary me-2") }}
+                    <a href="{{ url_for('schedule_management') }}" class="btn btn-secondary">إلغاء التعديلات</a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {# === قسم تسجيل استلام الأسئلة === #}
+    <div class="card card-body mb-4 shadow-sm border-info">
+         <h5 class="card-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-in-down me-1" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M3.5 10a.5.5 0 0 1-.5-.5v-8a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 0 0 1h2A1.5 1.5 0 0 0 14 9.5v-8A1.5 1.5 0 0 0 12.5 0h-9A1.5 1.5 0 0 0 2 1.5v8A1.5 1.5 0 0 0 3.5 11h2a.5.5 0 0 0 0-1z"/><path fill-rule="evenodd" d="M7.646 15.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 14.293V5.5a.5.5 0 0 0-1 0v8.793l-2.146-2.147a.5.5 0 0 0-.708.708z"/></svg>
+             تتبع استلام الأسئلة
+         </h5>
+         <form method="POST" action="{{ url_for('edit_exam', exam_id=exam.id) }}">
+             {{ form.hidden_tag() }} {# إعادة استخدام التوكن #}
+             <input type="hidden" name="action" value="record_questions_received">
+             <div class="row g-3 align-items-center">
+                <div class="col-md-6">
+                    <label class="form-label">وقت استلام الأسئلة من الأستاذ:</label>
+                    <input type="text" class="form-control form-control-sm bg-light" value="{{ exam.questions_received_at.strftime('%Y-%m-%d %H:%M') if exam.questions_received_at else 'لم يتم التسجيل' }}" readonly>
+                </div>
+                <div class="col-md-6 align-self-end">
+                     <button type="submit" class="btn btn-sm btn-outline-success" {% if exam.questions_received_at %}disabled aria-disabled="true"{% endif %}>
+                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle-fill me-1" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg>
+                         تسجيل استلام الأسئلة الآن
+                     </button>
+                </div>
+            </div>
+         </form>
+    </div>
+
+    {# =========================================================== #}
+    {# ====> القسم الجديد: رفع ملف PDF للطلاب وتوزيع القاعات <==== #}
+    {# =========================================================== #}
+    <div class="card card-body mb-4 shadow-sm border-success">
+         <h5 class="card-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-file-earmark-pdf-fill me-2" viewBox="0 0 16 16"><path d="M5.523 12.424q.21-.124.459-.238a2.5 2.5 0 0 1-.45.606c-.28.337-.498.516-.635.572a.27.27 0 0 1-.035.012.28.28 0 0 1-.041.013H4.85c-.058 0-.115-.01-.16-.036a.31.31 0 0 1-.136-.098c-.037-.05-.055-.11-.055-.18q0-.09.08-.193c.07-.104.14-.2.19-.28a2 2 0 0 1 .14-.258c.07-.09.12-.16.15-.21q.076-.13.11-.258.027-.102.027-.213 0-.09-.05-.174a.6.6 0 0 0-.14-.153c-.06-.05-.11-.074-.15-.074H4.42a.44.44 0 0 0-.19.043c-.07.043-.12.1-.15.17q-.036.088-.036.193 0 .12.044.234c.043.113.1.21.17.29a.8.8 0 0 0 .18.18c.07.05.13.074.17.074h.38c.09 0 .17-.02.24-.06a.4.4 0 0 0 .12-.16c.04-.09.058-.2.058-.32 0-.14-.03-.27-.08-.39a.9.9 0 0 0-.2-.25c-.1-.09-.2-.13-.3-.13H4.25a.99.99 0 0 1-.33-.055c-.08-.04-.14-.08-.19-.13a.49.49 0 0 1-.1-.19c-.03-.08-.04-.16-.04-.25 0-.17.06-.3.18-.4.11-.1.26-.16.44-.16h.75c.12 0 .23.02.34.07.1.04.19.1.26.17.07.08.12.16.15.25.03.09.04.18.04.27 0 .18-.05.34-.15.48a1.3 1.3 0 0 1-.3.3 1.4 1.4 0 0 1-.42.2zM7.82 13.54h.66q.24 0 .43-.06a.96.96 0 0 0 .35-.2.8.8 0 0 0 .2-.35.88.88 0 0 0 .07-.45 1 1 0 0 0-.11-.5.98.98 0 0 0-.3-.37.95.95 0 0 0-.48-.23q-.18-.03-.4-.03h-.47v2.41zm1.14-2.41a1.5 1.5 0 0 1 .62.13 1.1 1.1 0 0 1 .44.4c.13.2.2.44.2.72 0 .23-.05.44-.14.63a1.1 1.1 0 0 1-.4.43 1.5 1.5 0 0 1-.62.15h-.7v-2.47h.75z"/><path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1M6.022 11.02v1.94h.625q.28 0 .5-.082.22-.083.37-.234a1 1 0 0 0 .26-.44.9.9 0 0 0 .09-.51q0-.46-.31-.7a.97.97 0 0 0-.54-.21z"/></svg>
+            استيراد الطلاب وتوزيع القاعات من ملف PDF
+         </h5>
+            <p class="text-muted small">
+       ارفع ملف PDF يحتوي على قوائم الطلاب وتوزيع القاعات لهذا الامتحان.
+       سيقوم النظام بمحاولة قراءة الملف واستخراج البيانات لعرضها عليك في **خطوة مراجعة وتأكيد** قبل حفظها نهائياً.
+       سيتم أيضاً تحديث حقل "القاعات المخصصة" و "عدد الطلاب" **بعد التأكيد**.
+   </p>
+         {# الفورم الجديد لرفع الملف #}
+         <form method="POST" action="{{ url_for('upload_pdf_for_exam', exam_id=exam.id) }}" enctype="multipart/form-data" id="uploadPdfForm">
+             <div class="input-group mb-3">
+                 <input type="file" class="form-control" id="pdfFile" name="pdf_file" accept=".pdf" required>
+                 <button class="btn btn-outline-success" type="submit" id="uploadButton">
+                     <span class="spinner-border spinner-border-sm me-1 d-none" role="status" aria-hidden="true"></span> {# سبينر للانتظار #}
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-upload me-1" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/><path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708z"/></svg>
+                     رفع ومعالجة الملف
+                 </button>
+             </div>
+         </form>
+         <div class="progress d-none" id="uploadProgressContainer">
+             <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%" id="uploadProgressBar"></div>
+         </div>
+         <small class="form-text text-danger">ملاحظة: قد تستغرق المعالجة بعض الوقت حسب حجم الملف وعدد الطلاب. لا تقم بإغلاق الصفحة أثناء المعالجة.</small>
+    </div>
+    {# =========================================================== #}
+    {# ====> نهاية القسم الجديد <==== #}
+    {# =========================================================== #}
+
+
+    <a href="{{ url_for('schedule_management') }}" class="btn btn-link mt-3">
+         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right-circle" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8m15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0M4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5z"/></svg>
+         العودة إلى جدول الامتحانات
+    </a>
+
+</div> {# End container #}
+{% endblock %} {# نهاية بلوك content #}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // جافاسكربت لإظهار علامة الانتظار عند الرفع
+    document.addEventListener('DOMContentLoaded', function() {
+        const uploadForm = document.getElementById('uploadPdfForm');
+        const uploadButton = document.getElementById('uploadButton');
+        const spinner = uploadButton.querySelector('.spinner-border');
+        //const progressContainer = document.getElementById('uploadProgressContainer');
+        //const progressBar = document.getElementById('uploadProgressBar');
+
+        if (uploadForm && uploadButton && spinner) {
+            uploadForm.addEventListener('submit', function() {
+                // Disable button and show spinner
+                uploadButton.disabled = true;
+                spinner.classList.remove('d-none');
+                //progressContainer.classList.remove('d-none'); // Show progress bar
+
+                // يمكنك إضافة كود لتحديث شريط التقدم إذا كان لديك طريقة لتتبعه
+                // (يتطلب عادةً AJAX أو WebSocket، وهو معقد للإضافة الآن)
+                // let progress = 0;
+                // const interval = setInterval(function() {
+                //     progress += 10;
+                //     progressBar.style.width = progress + '%';
+                //     progressBar.setAttribute('aria-valuenow', progress);
+                //     if (progress >= 100) {
+                //         clearInterval(interval);
+                //     }
+                // }, 500); // تحديث وهمي كل نصف ثانية
+            });
+        }
+    });
+</script>
+{% endblock %}

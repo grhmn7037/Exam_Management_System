@@ -1,0 +1,60 @@
+<!-- templates/record_absence.html (الكود الكامل بنهاية الخطوة 26) -->
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-person-x-fill me-2" viewBox="0 0 16 16">...</svg> {{ title }}</h1>
+    <p class="text-muted">الامتحان: {{ exam.subject_name }} | المرحلة: {{ exam.stage }} | التاريخ: {{ exam.exam_date.strftime('%Y-%m-%d') }} | الفترة: {{ exam.period }}</p>
+    <hr>
+
+    <div class="card card-body shadow-sm border-warning"> {# تمييز الكارد #}
+        <form method="POST" action="{{ url_for('record_absence', exam_id=exam.id) }}" novalidate>
+            {{ form.hidden_tag() }} {# CSRF Token #}
+
+            {# ====> حقل عدد الغائبين <==== #}
+            <div class="mb-3">
+                <label for="{{ form.absent_count.id }}" class="form-label">{{ form.absent_count.label }}</label>
+                {{ form.absent_count(class="form-control form-control-sm w-auto " + ('is-invalid' if form.absent_count.errors else ''), type='number', min='0') }}
+                {% if form.absent_count.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.absent_count.errors %}<span>{{ error }}</span>{% endfor %}
+                    </div>
+                {% endif %}
+                 <div class="form-text">أدخل العدد الكلي للطلاب الغائبين في هذا الامتحان.</div>
+            </div>
+
+            {# ====> حقل معلومات الغائبين (أصبح اختيارياً) <==== #}
+            <div class="mb-3">
+                <label for="{{ form.absent_students_info.id }}" class="form-label">{{ form.absent_students_info.label }}</label>
+                {{ form.absent_students_info(class="form-control " + ('is-invalid' if form.absent_students_info.errors else ''), style="min-height: 100px; font-family: monospace;") }}
+                {% if form.absent_students_info.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.absent_students_info.errors %}<span>{{ error }}</span>{% endfor %}
+                    </div>
+                {% endif %}
+                 <div class="form-text">اختياري: أدخل الأرقام الامتحانية أو أسماء الطلاب الغائبين.</div>
+            </div>
+
+             <div class="mb-3">
+                <label for="{{ form.notes.id }}" class="form-label">{{ form.notes.label }}</label>
+                {{ form.notes(class="form-control " + ('is-invalid' if form.notes.errors else '')) }}
+                {% if form.notes.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.notes.errors %}<span>{{ error }}</span>{% endfor %}
+                    </div>
+                {% endif %}
+                 <div class="form-text">أية ملاحظات إضافية حول عملية تسجيل الغياب أو الحالات الخاصة.</div>
+            </div>
+
+            <div class="mt-4">
+                {{ form.submit(class="btn btn-primary me-2") }}
+                <a href="{{ url_for('daily_report', report_date=exam.exam_date.strftime('%Y-%m-%d')) }}" class="btn btn-secondary">إلغاء والعودة للموقف اليومي</a>
+            </div>
+
+        </form>
+    </div>
+
+</div> {# End container #}
+{% endblock %}

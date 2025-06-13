@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dental Caries Prevalence in Preschool Children</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .presentation-container {
+            width: 90%;
+            max-width: 1000px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .slide {
+            display: none;
+            padding: 40px;
+            min-height: 600px;
+            position: relative;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        .slide h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-align: center;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 15px;
+        }
+
+        .slide h2 {
+            color: #2980b9;
+            font-size: 2em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .slide h3 {
+            color: #34495e;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+
+        .slide p, .slide li {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .slide ul {
+            margin-left: 20px;
+            margin-bottom: 20px;
+        }
+
+        .title-slide {
+            text-align: center;
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+        }
+
+        .title-slide h1 {
+            color: white;
+            border-bottom: 3px solid white;
+            font-size: 2.8em;
+        }
+
+        .authors {
+            margin-top: 30px;
+            font-size: 1.3em;
+        }
+
+        .institution {
+            margin-top: 20px;
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .navigation {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            padding: 12px 24px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .nav-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .slide-counter {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #34495e;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .chart-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .pie-chart {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: conic-gradient(#e74c3c 0deg 251deg, #27ae60 251deg 360deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .pie-chart::before {
+            content: '';
+            width: 150px;
+            height: 150px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        .chart-labels {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        .chart-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .color-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #ff7675, #fd79a8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .conclusion-slide {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: white;
+        }
+
+        .conclusion-slide h2 {
+            color: white;
+        }
+
+        .recommendations {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #3498db;
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation-container">
+        <div class="slide-counter" id="slideCounter">1 / 20</div>
+
+        <!-- Slide 1: Title -->
+        <div class="slide active title-slide">
+            <h1>Prevalence of Dental Caries and Patterns of Dental Defects among Preschool Children in Erbil, Kurdistan Region, Iraq</h1>
+            <div class="authors">
+                <p><strong>Dr. Ghalib Rahman Hawrami</strong> - M.Sc. Prosthodontic (Lecturer)</p>
+                <p><strong>Dr. Halat Farhad Younis</strong> - B.D.S. General Dental Practitioner</p>
+            </div>
+            <div class="institution">
+                <p>Erbil Polytechnic University, Erbil, Iraq</p>
+                <p>Dental Assistant Department</p>
+            </div>
+        </div>
+
+        <!-- Slide 2: Background & Significance -->
+        <div class="slide">
+            <h2>Background & Significance</h2>
+            <ul>
+                <li><strong>Early Childhood Caries (ECC)</strong> - A significant global public health concern</li>
+                <li>Most prevalent chronic oral disease in young children</li>
+                <li>Affects <strong>millions of children worldwide</strong></li>
+                <li>Causes pain, discomfort, and impacts overall well-being</li>
+                <li>Limited comprehensive data available for Erbil region</li>
+            </ul>
+            <div class="highlight-box">
+                ECC: Presence of one or more decayed, missing, or filled tooth surfaces in any primary tooth in children under 6 years
+            </div>
+        </div>
+
+        <!-- Slide 3: Problem Statement -->
+        <div class="slide">
+            <h2>Problem Statement</h2>
+            <ul>
+                <li>Notable research gap in comprehensive epidemiological data for Iraq, particularly Erbil Governorate</li>
+                <li>Previous studies limited in scope or focused on older age groups</li>
+                <li>Lack of data hampers development of targeted interventions</li>
+                <li>Evidence-based policies needed to address ECC in this population</li>
+            </ul>
+            <div class="highlight-box">
+                Critical knowledge gap regarding oral health status of preschool-aged children in Erbil
+            </div>
+        </div>
+
+        <!-- Slide 4: Study Objectives -->
+        <div class="slide">
+            <h2>Study Objectives</h2>
+            <h3>Primary Objectives:</h3>
+            <ul>
+                <li>Determine the prevalence of dental caries and dental defects among 4-5 year old children</li>
+                <li>Assess severity of dental caries using DMFI indices</li>
+            </ul>
+            <h3>Secondary Objectives:</h3>
+            <ul>
+                <li>Investigate associations between dental defects and demographic factors</li>
+                <li>Provide comprehensive baseline data for targeted interventions</li>
+                <li>Inform oral health policies in Erbil Governorate</li>
+            </ul>
+        </div>
+
+        <!-- Slide 5: Methodology -->
+        <div class="slide">
+            <h2>Methodology</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">354</div>
+                    <div>Children Examined</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">4-5</div>
+                    <div>Age Range (Years)</div>
+                </div>
+            </div>
+            <ul>
+                <li><strong>Study Design:</strong> Cross-sectional census study</li>
+                <li><strong>Location:</strong> Faxir Mergasuri Preschool, Erbil</li>
+                <li><strong>Duration:</strong> December 2023 - April 2024</li>
+                <li><strong>Assessment Tool:</strong> DMFI Indices (Decay, Missing, Filled, Indicated for extraction)</li>
+                <li><strong>Examiners:</strong> Two calibrated dentists using ICDAS</li>
+            </ul>
+        </div>
+
+        <!-- Slide 6: DMFI Index Explanation -->
+        <div class="slide">
+            <h2>DMFI Index Components</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">D</div>
+                    <div>Decay - Visually detected untreated caries</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">M</div>
+                    <div>Missing - Teeth absent due to caries</div>
+                </div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">F</div>
+                    <div>Filled - Restored tooth surfaces</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">I</div>
+                    <div>Indicated for Extraction - Severe caries</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Key Results Overview -->
+        <div class="slide">
+            <h2>Key Results Overview</h2>
+            <div class="chart-container">
+                <div class="pie-chart"></div>
+            </div>
+            <div class="chart-labels">
+                <div class="chart-label">
+                    <div class="color-box" style="background: #e74c3c;"></div>
+                    <span>With Dental Problems: 69.75% (247 children)</span>
+                </div>
+                <div class="chart-label">
+                    <div class="color-box" style="background: #27ae60;"></div>
+                    <span>Healthy: 30.25% (107 children)</span>
+                </div>
+            </div>
+            <div class="highlight-box">
+                Nearly 7 out of 10 children had some form of dental defect
+            </div>
+        </div>
+
+        <!-- Slide 8: Decay Prevalence -->
+        <div class="slide">
+            <h2>Decay Prevalence</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">305</div>
+                    <div>Children with Decay</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">86.16%</div>
+                    <div>Prevalence Rate</div>
+                </div>
+            </div>
+            <h3>Distribution by Severity:</h3>
+            <ul>
+                <li><strong>Less than 5 teeth affected:</strong> 178 children (58.4%)</li>
+                <li><strong>5-10 teeth affected:</strong> 49 children (16.1%)</li>
+                <li><strong>More than 10 teeth affected:</strong> 10 children (3.3%)</li>
+            </ul>
+            <div class="highlight-box">
+                Majority of decay cases involved fewer than 5 teeth - Early intervention opportunity!
+            </div>
+        </div>
+
+        <!-- Slide 9: Missing Teeth -->
+        <div class="slide">
+            <h2>Missing Teeth Analysis</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">295</div>
+                    <div>Children with Missing Teeth</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">83.33%</div>
+                    <div>Prevalence Rate</div>
+                </div>
+            </div>
+            <ul>
+                <li><strong>All cases</strong> affected fewer than 5 teeth per child</li>
+                <li>Suggests tooth loss is in early stages</li>
+                <li>Concerning given young age of population</li>
+                <li>Potential implications for dental development</li>
+            </ul>
+            <div class="highlight-box">
+                Premature loss of primary teeth can lead to malocclusion and orthodontic issues
+            </div>
+        </div>
+
+        <!-- Slide 10: Treatment Status -->
+        <div class="slide">
+            <h2>Treatment Status Analysis</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">16</div>
+                    <div>Children with Fillings (4.52%)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">25</div>
+                    <div>Teeth Indicated for Extraction (7.06%)</div>
+                </div>
+            </div>
+            <h3>Key Findings:</h3>
+            <ul>
+                <li>Very low prevalence of fillings compared to high decay rate</li>
+                <li>Significant unmet treatment need</li>
+                <li>Most extractions needed affected <5 teeth per child</li>
+            </ul>
+            <div class="highlight-box">
+                Huge gap between treatment needs and actual treatment received
+            </div>
+        </div>
+
+        <!-- Slide 11: Age Association -->
+        <div class="slide">
+            <h2>Age-Related Findings</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">χ²=12.45</div>
+                    <div>Statistical Significance</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">p<0.001</div>
+                    <div>P-value</div>
+                </div>
+            </div>
+            <h3>Key Finding:</h3>
+            <ul>
+                <li><strong>Significant association</strong> between age and dental defects</li>
+                <li>5-year-olds more likely to have dental issues than 4-year-olds</li>
+                <li>Demonstrates rapid progression of dental problems</li>
+                <li>Emphasizes need for early intervention</li>
+            </ul>
+            <div class="highlight-box">
+                Dental problems escalate quickly between ages 4 and 5
+            </div>
+        </div>
+
+        <!-- Slide 12: Gender Analysis -->
+        <div class="slide">
+            <h2>Gender Distribution</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">χ²=0.78</div>
+                    <div>Chi-square Value</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">p=0.378</div>
+                    <div>P-value (Not Significant)</div>
+                </div>
+            </div>
+            <h3>Key Finding:</h3>
+            <ul>
+                <li><strong>No significant gender differences</strong> in dental defect prevalence</li>
+                <li>Both boys and girls equally affected</li>
+                <li>Dental health initiatives should target both genders equally</li>
+            </ul>
+            <div class="highlight-box">
+                Gender-neutral approach recommended for intervention strategies
+            </div>
+        </div>
+
+        <!-- Slide 13: Global Comparison -->
+        <div class="slide">
+            <h2>Global Comparison</h2>
+            <h3>Our Study vs. International Data:</h3>
+            <ul>
+                <li><strong>Erbil (Our Study):</strong> 69.75% prevalence</li>
+                <li><strong>Nigeria (Oyedele et al.):</strong> 52.5% prevalence</li>
+                <li><strong>Saudi Arabia (Al-Jabir et al.):</strong> 83% prevalence</li>
+                <li><strong>Previous Erbil Study:</strong> 68.3% prevalence</li>
+            </ul>
+            <div class="highlight-box">
+                Our findings align with global trends showing high ECC prevalence in developing regions
+            </div>
+        </div>
+
+        <!-- Slide 14: Risk Factors -->
+        <div class="slide">
+            <h2>Contributing Risk Factors</h2>
+            <h3>Biological Factors:</h3>
+            <ul>
+                <li>Cariogenic bacteria (Streptococcus mutans)</li>
+                <li>Fermentable carbohydrates interaction</li>
+            </ul>
+            <h3>Behavioral Factors:</h3>
+            <ul>
+                <li>Frequent sugary beverage/snack consumption</li>
+                <li>Poor oral hygiene practices</li>
+                <li>Inadequate fluoride exposure</li>
+            </ul>
+            <h3>Social Factors:</h3>
+            <ul>
+                <li>Socioeconomic status</li>
+                <li>Limited access to dental care</li>
+                <li>Parental education level</li>
+            </ul>
+        </div>
+
+        <!-- Slide 15: Clinical Implications -->
+        <div class="slide">
+            <h2>Clinical Implications</h2>
+            <h3>Immediate Concerns:</h3>
+            <ul>
+                <li>High unmet treatment needs</li>
+                <li>Rapid progression of dental problems</li>
+                <li>Early tooth loss complications</li>
+            </ul>
+            <h3>Long-term Impact:</h3>
+            <ul>
+                <li>Increased risk of caries in permanent teeth</li>
+                <li>Potential orthodontic complications</li>
+                <li>Impact on quality of life and development</li>
+                <li>Economic burden on families and healthcare system</li>
+            </ul>
+        </div>
+
+        <!-- Slide 16: Study Limitations -->
+        <div class="slide">
+            <h2>Study Limitations</h2>
+            <ul>
+                <li><strong>Single-site design:</strong> Limited generalizability to other populations</li>
+                <li><strong>Visual examination only:</strong> No radiographic assessment</li>
+                <li><strong>Cross-sectional nature:</strong> Cannot establish causality</li>
+                <li><strong>Limited socioeconomic data:</strong> Missing important confounding factors</li>
+            </ul>
+            <div class="highlight-box">
+                Despite limitations, provides valuable baseline data for Erbil region
+            </div>
+        </div>
+
+        <!-- Slide 17: Recommendations - Prevention -->
+        <div class="slide">
+            <h2>Prevention Recommendations</h2>
+            <div class="recommendations">
+                <h3>Primary Prevention:</h3>
+                <ul>
+                    <li>Community water fluoridation programs</li>
+                    <li>Oral health education in preschools</li>
+                    <li>Parental education programs</li>
+                    <li>Dietary counseling and guidance</li>
+                </ul>
+                <h3>Secondary Prevention:</h3>
+                <ul>
+                    <li>Regular dental screening programs</li>
+                    <li>Fluoride varnish applications</li>
+                    <li>Early detection and intervention protocols</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 18: Recommendations - Treatment -->
+        <div class="slide">
+            <h2>Treatment Recommendations</h2>
+            <div class="recommendations">
+                <h3>Immediate Actions:</h3>
+                <ul>
+                    <li>Establish school-based dental clinics</li>
+                    <li>Training programs for dental professionals</li>
+                    <li>Mobile dental units for underserved areas</li>
+                    <li>Referral systems for complex cases</li>
+                </ul>
+                <h3>Long-term Strategy:</h3>
+                <ul>
+                    <li>Integration with primary healthcare</li>
+                    <li>Policy development for oral health</li>
+                    <li>Insurance coverage for pediatric dentistry</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 19: Future Research -->
+        <div class="slide">
+            <h2>Future Research Directions</h2>
+            <ul>
+                <li><strong>Multi-site studies</strong> across various socioeconomic areas</li>
+                <li><strong>Longitudinal studies</strong> to track progression over time</li>
+                <li><strong>Advanced diagnostics</strong> including radiographic assessments</li>
+                <li><strong>Socioeconomic analysis</strong> of contributing factors</li>
+                <li><strong>Intervention effectiveness</strong> through RCTs</li>
+                <li><strong>Parental knowledge and attitudes</strong> assessment</li>
+                <li><strong>Cost-effectiveness</strong> studies of prevention programs</li>
+            </ul>
+        </div>
+
+        <!-- Slide 20: Conclusions -->
+        <div class="slide conclusion-slide">
+            <h2>Conclusions</h2>
+            <ul>
+                <li>High prevalence of dental defects (69.75%) among preschoolers in Erbil</li>
+                <li>Decay is the most common problem affecting 86.16% of children</li>
+                <li>Significant unmet treatment needs identified</li>
+                <li>Age-related progression of dental problems observed</li>
+                <li>Urgent need for comprehensive oral health programs</li>
+                <li>Early intervention can prevent progression to severe cases</li>
+            </ul>
+            <div class="highlight-box">
+                <strong>Call to Action:</strong> Implement targeted oral health promotion, preventive interventions, and improved access to early dental care
+            </div>
+        </div>
+    </div>
+
+    <div class="navigation">
+        <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">Previous</button>
+        <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">Next</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+
+        function showSlide(n) {
+            slides.forEach(slide => slide.classList.remove('active'));
+            slides[n].classList.add('active');
+
+            document.getElementById('slideCounter').textContent = `${n + 1} / ${totalSlides}`;
+
+            document.getElementById('prevBtn').disabled = (n === 0);
+            document.getElementById('nextBtn').disabled = (n === totalSlides - 1);
+        }
+
+        function changeSlide(direction) {
+            currentSlide += direction;
+            if (currentSlide < 0) currentSlide = 0;
+            if (currentSlide >= totalSlides) currentSlide = totalSlides - 1;
+            showSlide(currentSlide);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft') changeSlide(-1);
+            if (e.key === 'ArrowRight') changeSlide(1);
+        });
+
+        // Initialize
+        showSlide(0);
+    </script>
+</body>
+</html>

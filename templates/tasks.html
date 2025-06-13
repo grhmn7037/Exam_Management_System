@@ -1,0 +1,365 @@
+<!-- templates/tasks.html (الكود الكامل المعدل ليشمل JS للربط التلقائي) -->
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    {# === منطقة العنوان والأزرار العلوية === #}
+    <div class="row mb-2 align-items-center">
+        <div class="col-md-6">
+            <h1><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-list-task me-2" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 2.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5V3a.5.5 0 0 0-.5-.5zM3 3H2v1h1z"/><path d="M5 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M5.5 7a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1zm0 4a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1z"/><path fill-rule="evenodd" d="M1.5 7a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zM2 7h1v1H2zm0 3.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm1 .5H2v1h1z"/></svg> {{ title }}</h1>
+            <p class="text-muted mb-1">عرض المهام ليوم: {{ current_date.strftime('%A - %d / %m / %Y') if current_date }}</p>
+             {# التنقل بين الأيام #}
+            <div class="btn-group btn-group-sm" role="group">
+                <a href="{{ url_for('task_dashboard', view_date=(current_date - timedelta(days=1)).strftime('%Y-%m-%d'), **current_filters) if current_date else '#' }}" class="btn btn-outline-secondary">< أمس</a>
+                <a href="{{ url_for('task_dashboard', **current_filters) }}" class="btn btn-outline-secondary {% if current_date == today_date %}active{% endif %}">اليوم</a>
+                <a href="{{ url_for('task_dashboard', view_date=(current_date + timedelta(days=1)).strftime('%Y-%m-%d'), **current_filters) if current_date else '#' }}" class="btn btn-outline-secondary">غداً ></a>
+            </div>
+             <input type="date" id="datePicker" class="form-control-sm d-inline-block w-auto ms-2" value="{{ current_date.strftime('%Y-%m-%d') if current_date }}">
+        </div>
+        <div class="col-md-6 text-md-end mt-2 mt-md-0">
+             <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#assignTaskModal">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg me-1" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2"/></svg>
+                 إسناد مهمة جديدة
+            </button>
+        </div>
+    </div>
+
+    {# === قسم الفلاتر === #}
+    <div class="card card-body bg-light mb-3 py-2">
+        <form method="GET" action="{{ url_for('task_dashboard') }}" id="filterForm">
+             <input type="hidden" name="view_date" value="{{ current_date.strftime('%Y-%m-%d') if current_date }}">
+            <div class="row g-2 align-items-center">
+                <div class="col-md-4">
+                    <label for="staff_filter" class="form-label-sm">فلترة حسب الموظف:</label>
+                    <select name="staff_filter" id="staff_filter" class="form-select form-select-sm">
+                        <option value="">-- كل التدريسيين --</option>
+                        {# نستخدم available_staff هنا للفلتر #}
+                        {% for staff in available_staff %}
+                            <option value="{{ staff.id }}" {% if current_filters.staff_filter == staff.id %}selected{% endif %}>{{ staff.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                 <div class="col-md-4">
+                     <label for="status_filter" class="form-label-sm">فلترة حسب الحالة:</label>
+                     <select name="status_filter" id="status_filter" class="form-select form-select-sm">
+                        <option value="all" {% if not current_filters.status_filter or current_filters.status_filter == 'all' %}selected{% endif %}>-- كل الحالات --</option>
+                        <option value="Pending" {% if current_filters.status_filter == 'Pending' %}selected{% endif %}>Pending</option>
+                        <option value="In Progress" {% if current_filters.status_filter == 'In Progress' %}selected{% endif %}>In Progress</option>
+                        <option value="Completed" {% if current_filters.status_filter == 'Completed' %}selected{% endif %}>Completed</option>
+                         <option value="Cancelled" {% if current_filters.status_filter == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                         <option value="not_completed" {% if current_filters.status_filter == 'not_completed' %}selected{% endif %}>غير مكتمل (Pending/In Progress)</option>
+                    </select>
+                </div>
+                <div class="col-md-auto align-self-end">
+                     <button type="submit" class="btn btn-sm btn-primary">تطبيق الفلتر</button>
+                     <a href="{{ url_for('task_dashboard', view_date=current_date.strftime('%Y-%m-%d')) if current_date else url_for('task_dashboard') }}" class="btn btn-sm btn-outline-secondary ms-1">إلغاء الفلتر</a>
+                </div>
+            </div>
+        </form>
+    </div>
+    <hr>
+
+    {# === منطقة عرض المهام === #}
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover caption-top">
+             <caption>المهام المسندة ليوم {{ current_date.strftime('%d/%m/%Y') if current_date }} {% if current_filters.staff_filter or (current_filters.status_filter and current_filters.status_filter != 'all') %} (مفلترة) {% endif %}</caption>
+            <thead class="table-light align-middle">
+                <tr><th>#</th><th>المهمة</th><th>الموظف</th><th>الحالة</th><th>ملاحظات</th><th>إجراءات</th></tr>
+            </thead>
+            <tbody class="align-middle">
+                {% for assignment in assignments %}
+                <tr class=" {% if assignment.status == 'Completed' %}table-success{% elif assignment.status == 'In Progress' %}table-warning{% elif assignment.status == 'Cancelled' %}table-danger text-decoration-line-through{% else %}table-secondary{% endif %} ">
+                    <td>{{ loop.index }}</td>
+                    <td><strong>{{ assignment.task_title }}</strong>{% if assignment.task_description %}<small class="d-block text-muted">{{ assignment.task_description }}</small>{% endif %}{% if assignment.related_exam %}<small class="d-block text-info">({{ assignment.related_exam.subject_name }} - م{{assignment.related_exam.stage}})</small>{% endif %}</td>
+                    <td>{{ assignment.assignee.name or '-'}}</td>
+                    <td><div class="dropdown">{# dropdown لتغيير الحالة #}
+                        <button class="btn btn-sm dropdown-toggle {% if assignment.status == 'Completed' %}btn-success{% elif assignment.status == 'In Progress' %}btn-warning text-dark{% elif assignment.status == 'Pending' %}btn-secondary{% elif assignment.status == 'Cancelled' %}btn-danger{% endif %}" type="button" id="statusDropdown{{ assignment.id }}" data-bs-toggle="dropdown" aria-expanded="false">{{ assignment.status }}</button>
+                        <ul class="dropdown-menu" aria-labelledby="statusDropdown{{ assignment.id }}">
+                            <li><a class="dropdown-item {% if assignment.status == 'Pending' %}active{% endif %}" href="#" onclick="updateStatus({{ assignment.id }}, 'Pending'); return false;">Pending</a></li>
+                            <li><a class="dropdown-item {% if assignment.status == 'In Progress' %}active{% endif %}" href="#" onclick="updateStatus({{ assignment.id }}, 'In Progress'); return false;">In Progress</a></li>
+                            <li><a class="dropdown-item {% if assignment.status == 'Completed' %}active{% endif %}" href="#" onclick="updateStatus({{ assignment.id }}, 'Completed'); return false;">Completed</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item link-danger {% if assignment.status == 'Cancelled' %}active{% endif %}" href="#" onclick="updateStatus({{ assignment.id }}, 'Cancelled'); return false;">Cancelled</a></li>
+                        </ul>
+                         <form id="updateStatusForm{{ assignment.id }}" method="POST" action="{{ url_for('update_task_status', assignment_id=assignment.id) }}" style="display: none;">
+                             <input type="hidden" name="new_status" id="newStatusInput{{ assignment.id }}">
+                             {# تمرير الفلاتر الحالية مع الفورم #}
+                             {% if current_filters.staff_filter %}<input type="hidden" name="staff_filter" value="{{ current_filters.staff_filter }}">{% endif %}
+                             {% if current_filters.status_filter %}<input type="hidden" name="status_filter" value="{{ current_filters.status_filter }}">{% endif %}
+                         </form>
+                    </div></td>
+                    <td>{{ assignment.notes if assignment.notes else '-' }}</td>
+                    <td class="text-nowrap">
+                        {# زر النسخ #}
+                        <a href="{{ url_for('task_dashboard', view_date=current_date.strftime('%Y-%m-%d'), action='copy', copy_from_id=assignment.id, **current_filters) }}"
+                           class="btn btn-sm btn-outline-secondary me-1" title="نسخ إلى الغد">
+                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard-plus" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4 1.5A1.5 1.5 0 0 1 5.5 0h5A1.5 1.5 0 0 1 12 1.5v2A1.5 1.5 0 0 1 10.5 5h-5A1.5 1.5 0 0 1 4 3.5zm-1 0v2h10v-2a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5M1.5 4h13a.5.5 0 0 1 0 1h-13a.5.5 0 0 1 0-1m0 3h13a.5.5 0 0 1 0 1h-13a.5.5 0 0 1 0-1m0 3h13a.5.5 0 0 1 0 1h-13a.5.5 0 0 1 0-1"/><path d="M8.5 1.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 .5.5V3h1.5a.5.5 0 0 1 0 1H11v1.5a.5.5 0 0 1-1 0V4h-1.5a.5.5 0 0 1-.5-.5z"/></svg>
+                        </a>
+                        {# زر التعديل #}
+                        <a href="{{ url_for('edit_assignment', assignment_id=assignment.id) }}" class="btn btn-sm btn-outline-info me-1" title="تعديل المهمة"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16"><path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/><path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/></svg></a>
+                        {# فورم الحذف مع تمرير الفلاتر والتاريخ #}
+                        <form action="{{ url_for('delete_assignment', assignment_id=assignment.id, view_date=current_date.strftime('%Y-%m-%d'), **current_filters) }}" method="POST" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذه المهمة المسندة؟');">
+                             <button type="submit" class="btn btn-sm btn-outline-danger" title="حذف المهمة"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/></svg></button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="text-center fst-italic py-3">{% if current_filters.staff_filter or (current_filters.status_filter and current_filters.status_filter != 'all') %}لا توجد مهام تطابق الفلتر المحدد.{% else %}لا توجد مهام مسندة لهذا اليوم حالياً.{% endif %}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {# === مودال إسناد المهمة === #}
+    <div class="modal fade" id="assignTaskModal" tabindex="-1" aria-labelledby="assignTaskModalLabel" aria-hidden="true">
+         <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form method="POST" action="{{ url_for('task_dashboard', **current_filters) }}" novalidate id="assignTaskFormElement"> {# إضافة ID للفورم #}
+                    {{ assign_form.hidden_tag() }}
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="assignTaskModalLabel">إسناد مهمة جديدة</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                {{ assign_form.assignment_date.label(class="form-label") }}
+                                {{ assign_form.assignment_date(class="form-control " + ('is-invalid' if assign_form.assignment_date.errors else ''), id="assignment_date_field") }}
+                                {% if assign_form.assignment_date.errors %}<div class="invalid-feedback">{% for error in assign_form.assignment_date.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ assign_form.staff_id.label(class="form-label") }}
+                                {{ assign_form.staff_id(class="form-select " + ('is-invalid' if assign_form.staff_id.errors else ''), id="staff_id_field") }}
+                                {% if assign_form.staff_id.errors %}<div class="invalid-feedback">{% for error in assign_form.staff_id.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ assign_form.task_template_id.label(class="form-label") }}
+                                {{ assign_form.task_template_id(class="form-select " + ('is-invalid' if assign_form.task_template_id.errors else ''), id="task_template_id_field") }}
+                                {% if assign_form.task_template_id.errors %}<div class="invalid-feedback">{% for error in assign_form.task_template_id.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ assign_form.task_title.label(class="form-label") }}
+                                {{ assign_form.task_title(class="form-control " + ('is-invalid' if assign_form.task_title.errors else ''), id="task_title_field") }}
+                                {% if assign_form.task_title.errors %}<div class="invalid-feedback">{% for error in assign_form.task_title.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ assign_form.period.label(class="form-label") }}
+                                {{ assign_form.period(class="form-select " + ('is-invalid' if assign_form.period.errors else ''), id="period_field") }}
+                                {% if assign_form.period.errors %}<div class="invalid-feedback">{% for error in assign_form.period.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ assign_form.exam_id.label(class="form-label") }}
+                                {{ assign_form.exam_id(class="form-select " + ('is-invalid' if assign_form.exam_id.errors else ''), id="exam_id_field") }}
+                                {% if assign_form.exam_id.errors %}<div class="invalid-feedback">{% for error in assign_form.exam_id.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ assign_form.priority.label(class="form-label") }}
+                                {{ assign_form.priority(class="form-select " + ('is-invalid' if assign_form.priority.errors else ''), id="priority_field") }}
+                                {% if assign_form.priority.errors %}<div class="invalid-feedback">{% for error in assign_form.priority.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ assign_form.status.label(class="form-label") }}
+                                {{ assign_form.status(class="form-select " + ('is-invalid' if assign_form.status.errors else ''), id="status_field") }}
+                                {% if assign_form.status.errors %}<div class="invalid-feedback">{% for error in assign_form.status.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+                            </div>
+                            <div class="col-12">
+                                {{ assign_form.notes.label(class="form-label") }}
+                                {{ assign_form.notes(class="form-control " + ('is-invalid' if assign_form.notes.errors else ''), id="notes_field") }}
+                                {% if assign_form.notes.errors %}<div class="invalid-feedback">{% for error in assign_form.notes.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                        {{ assign_form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div> {# End container #}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{# === كود JS محدث للربط التلقائي === #}
+<script>
+    // تخزين بيانات الربط التي تم تمريرها من Flask
+    const taskTemplatesData = {{ task_templates_data|tojson }};
+
+    // --- دالة تحديث الحالة ---
+    function updateStatus(assignmentId, newStatus) {
+        const form = document.getElementById(`updateStatusForm${assignmentId}`);
+        const input = document.getElementById(`newStatusInput${assignmentId}`);
+        if (form && input) {
+            input.value = newStatus;
+            // إضافة الفلاتر الحالية كحقول مخفية قبل الإرسال
+            const urlParams = new URLSearchParams(window.location.search);
+            const staffFilter = urlParams.get('staff_filter');
+            const statusFilter = urlParams.get('status_filter');
+            if (staffFilter) {
+                let hiddenInput = form.querySelector('input[name="staff_filter"]');
+                if (!hiddenInput) {
+                    hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'staff_filter';
+                    form.appendChild(hiddenInput);
+                }
+                hiddenInput.value = staffFilter;
+            }
+            if (statusFilter) {
+                 let hiddenInput = form.querySelector('input[name="status_filter"]');
+                if (!hiddenInput) {
+                    hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'status_filter';
+                    form.appendChild(hiddenInput);
+                }
+                 hiddenInput.value = statusFilter;
+            }
+            form.submit();
+        } else {
+            console.error(`Could not find form or input for assignment ${assignmentId}`);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const templateSelect = document.getElementById('task_template_id_field');
+        const staffSelect = document.getElementById('staff_id_field');
+        const titleInput = document.getElementById('task_title_field');
+
+        // --- ربط اختيار القالب بالموظف والعنوان ---
+        if (templateSelect && staffSelect && titleInput) {
+            templateSelect.addEventListener('change', function() {
+                const selectedTemplateId = this.value;
+                const selectedOptionText = this.options[this.selectedIndex].text;
+                let defaultStaffId = null;
+
+                // البحث عن التدريسي الافتراضي للقالب المختار
+                if (selectedTemplateId && taskTemplatesData) {
+                    const templateInfo = taskTemplatesData.find(t => t.id == selectedTemplateId); // استخدم == للمقارنة المرنة (string vs number)
+                    if (templateInfo) {
+                        defaultStaffId = templateInfo.default_staff_id;
+                         // 1. ملء العنوان من القالب
+                        titleInput.value = templateInfo.title;
+                    } else {
+                         // إذا لم نجد معلومات القالب (غير متوقع)، استخدم النص المعروض
+                         titleInput.value = (selectedTemplateId !== '' && selectedTemplateId !== '__None') ? selectedOptionText : '';
+                    }
+                } else {
+                    // إذا تم اختيار "-- مهمة مخصصة --"
+                     titleInput.value = ''; // أفرغ العنوان ليدخله المستخدم
+                }
+
+                // 2. تحديد التدريسي الافتراضي إذا وجد
+                if (defaultStaffId) {
+                    // تحقق مما إذا كان التدريسي موجوداً في القائمة
+                    if (staffSelect.querySelector(`option[value="${defaultStaffId}"]`)) {
+                         staffSelect.value = defaultStaffId;
+                    } else {
+                         console.warn(`Default staff ID ${defaultStaffId} not found in staff dropdown.`);
+                         // يمكنك ترك التدريسي المحدد حالياً أو إفراغ التحديد
+                         // staffSelect.value = "";
+                    }
+                } else if (selectedTemplateId === '' || selectedTemplateId === '__None') {
+                    // إذا اختار مهمة مخصصة أو ألغى الاختيار، لا تغير التدريسي المحدد حالياً
+                    // staffSelect.value = ""; // إلغاء التعليق لإفراغ الموظف
+                }
+            });
+        }
+
+        // --- (اختياري) ربط اختيار التدريسي بالقالب/العنوان ---
+        // هذا يتطلب تمرير بيانات التدريسي مع مسؤولياته الأساسية (staffData)
+        /*
+        if (staffSelect && templateSelect && titleInput && typeof staffData !== 'undefined') {
+            staffSelect.addEventListener('change', function() {
+                const selectedStaffId = this.value;
+                let primaryResponsibility = null;
+                let templateFound = false;
+
+                if (selectedStaffId) {
+                    const staffInfo = staffData.find(s => s.id == selectedStaffId);
+                    if (staffInfo) {
+                        primaryResponsibility = staffInfo.primary_responsibility;
+                    }
+                }
+
+                if (primaryResponsibility) {
+                    // البحث عن قالب يطابق المسؤولية (قد تحتاج لمقارنة أدق)
+                    for (let i = 0; i < templateSelect.options.length; i++) {
+                        if (templateSelect.options[i].text === primaryResponsibility) {
+                            templateSelect.value = templateSelect.options[i].value;
+                            titleInput.value = templateSelect.options[i].text;
+                            templateFound = true;
+                            break;
+                        }
+                    }
+                    // إذا لم يتم العثور على قالب، املأ العنوان فقط
+                    if (!templateFound) {
+                         templateSelect.value = ""; // إلغاء تحديد القالب
+                         titleInput.value = primaryResponsibility;
+                    }
+                } else {
+                     // إذا لم يتم اختيار التدريسي أو ليس له مسؤولية
+                     templateSelect.value = "";
+                     // titleInput.value = ""; // إفراغ العنوان؟
+                }
+            });
+        }
+        */
+
+        // --- التنقل بالتواريخ باستخدام date picker ---
+        const datePicker = document.getElementById('datePicker');
+        if(datePicker) {
+            datePicker.addEventListener('change', function() {
+                const selectedDate = this.value;
+                if(selectedDate) {
+                    const currentUrl = new URL(window.location.href);
+                    const params = new URLSearchParams(currentUrl.search);
+                    params.set('view_date', selectedDate);
+                    window.location.href = `${currentUrl.pathname}?${params.toString()}`;
+                }
+            });
+        }
+
+        // --- إظهار مودال الإضافة تلقائياً عند الخطأ أو عند طلب النسخ ---
+        const assignModalElement = document.getElementById('assignTaskModal');
+        if (assignModalElement) {
+            const formHasErrors = assignModalElement.querySelector('.is-invalid');
+            const shouldOpenModal = {{ open_modal|tojson }};
+
+            if (formHasErrors || shouldOpenModal) {
+                const existingModal = bootstrap.Modal.getInstance(assignModalElement);
+                if (!existingModal) {
+                    const assignModal = new bootstrap.Modal(assignModalElement);
+                    if (assignModal) assignModal.show();
+                } else if (shouldOpenModal && !existingModal._isShown) {
+                    existingModal.show();
+                }
+            }
+
+            // إعادة تعيين الفورم عند الإغلاق (إلا إذا كان بسبب خطأ أو نسخ)
+            assignModalElement.addEventListener('hidden.bs.modal', event => {
+                const formHasErrorsOnClose = assignModalElement.querySelector('.is-invalid');
+                const wasCopyRequest = new URLSearchParams(window.location.search).get('action') === 'copy';
+                if (!formHasErrorsOnClose && !wasCopyRequest) {
+                    const form = assignModalElement.querySelector('form');
+                    if (form) {
+                        form.reset();
+                        // إعادة تعيين التاريخ لليوم الحالي الذي يتم عرضه
+                        const dateField = form.querySelector('#assignment_date_field');
+                        if(dateField) {
+                           dateField.value = "{{ current_date.strftime('%Y-%m-%d') if current_date else today_date.strftime('%Y-%m-%d') }}";
+                        }
+                         // قد تحتاج لإعادة ملء قوائم select الديناميكية هنا إذا لزم الأمر
+                         // (لكنها تُملأ من السيرفر عند كل تحميل للصفحة)
+                    }
+                }
+            })
+        }
+    });
+</script>
+{% endblock %}

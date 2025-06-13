@@ -1,0 +1,101 @@
+<head>
+    <!-- TEMPLATE VERSION CHECK: V2 -->
+    <title>{% block title %}{{ title }}{% endblock %}</title>
+    {# ... rest of head ... #}
+</head>
+{# templates/schedule/review_pdf.html #}
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1><i class="bi bi-clipboard2-check-fill me-2"></i> {{ title }}</h1>
+    <p class="text-muted">مراجعة بيانات الطلاب المستخرجة من ملف PDF للامتحان:</p>
+    <p><strong>{{ exam.subject_name }} (المرحلة {{ exam.stage }}) - {{ exam.exam_date.strftime('%Y-%m-%d') if exam.exam_date }}</strong></p>
+    <hr>
+
+    {# عرض الأخطاء والتحذيرات أولاً #}
+    {% if parsing_errors %}
+        <div class="alert alert-warning" role="alert">
+            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> ملاحظات وأخطاء أثناء التحليل</h4>
+            <ul class="mb-0 small" style="max-height: 150px; overflow-y: auto;">
+                {% for error in parsing_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            <hr>
+            <p class="mb-0 small">قد لا يتم استيراد بعض الطلاب بسبب هذه المشاكل. يرجى مراجعة القائمة أدناه بعناية.</p>
+        </div>
+    {% endif %}
+
+    {# عرض ملخص القاعات #}
+    {% if extracted_halls %}
+        <div class="alert alert-light border small mb-3">
+            <i class="bi bi-door-open-fill me-1"></i>
+            <strong>القاعات المكتشفة:</strong> {{ extracted_halls|join(', ') }}
+            <span class="text-muted">(سيتم تحديث قاعات الامتحان بهذه القائمة عند التأكيد)</span>
+        </div>
+    {% endif %}
+
+
+    {# جدول الطلاب للمراجعة #}
+    <h4 class="mt-4">الطلاب الذين سيتم استيرادهم ({{ students_to_review|length }})</h4>
+    {% if students_to_review %}
+        <div class="table-responsive mb-4">
+            <table class="table table-sm table-striped table-hover table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>اسم الطالب</th>
+                        <th>القاعة</th>
+                        <th>المقعد</th>
+                        <th>نوع الدراسة</th>
+                        <th>نوع التسجيل (حسب اللون)</th>
+                        <th>لون مكتشف (للتدقيق)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students_to_review %}
+                    <tr class="{% if student.registration_type == 'رسوب' %}table-danger{% elif student.registration_type == 'تحميل' %}table-success{% endif %}">
+                        <td>{{ loop.index }}</td>
+                        <td>{{ student.name }}</td>
+                        <td>{{ student.hall_name }}</td>
+                        <td>{{ student.seat_code }}</td>
+                        <td>{{ student.study_type }}</td>
+                        <td>{{ student.registration_type }}</td>
+                        <td class="small text-muted">
+                           {% if student.color_tuple %}
+                           <span style="display: inline-block; width: 15px; height: 15px; background-color: rgb({{ (student.color_tuple[0]*255)|int }}, {{ (student.color_tuple[1]*255)|int }}, {{ (student.color_tuple[2]*255)|int }}); border: 1px solid #ccc;"></span>
+                           ({{ "%.2f"|format(student.color_tuple[0]) }}, {{ "%.2f"|format(student.color_tuple[1]) }}, {{ "%.2f"|format(student.color_tuple[2]) }})
+                           {% else %}
+                           -
+                           {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {# أزرار التأكيد والإلغاء #}
+        <div class="d-flex justify-content-between">
+            <form action="{{ url_for('confirm_pdf_upload', exam_id=exam.id) }}" method="POST" onsubmit="return confirm('هل أنت متأكد من استيراد هذه البيانات؟ سيتم حذف أي تسجيلات سابقة لهذا الامتحان.')">
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="bi bi-check-circle-fill me-2"></i> تأكيد الاستيراد والحفظ
+                </button>
+            </form>
+            <form action="{{ url_for('cancel_pdf_upload', exam_id=exam.id) }}" method="POST">
+                <button type="submit" class="btn btn-danger btn-lg">
+                    <i class="bi bi-x-circle-fill me-2"></i> إلغاء العملية
+                </button>
+            </form>
+        </div>
+
+    {% else %}
+        <div class="alert alert-info">لم يتم العثور على بيانات طلاب صالحة للاستيراد في الملف المرفوع.</div>
+        <a href="{{ url_for('edit_exam', exam_id=exam.id) }}" class="btn btn-secondary">العودة إلى صفحة الامتحان</a>
+    {% endif %}
+
+</div> {# End container #}
+{% endblock %}

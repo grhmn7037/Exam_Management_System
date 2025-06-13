@@ -1,0 +1,63 @@
+<!-- templates/edit_staff.html (الكود الكامل - تأكد من عرض الحقول الجديدة) -->
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-person-fill-gear me-2" viewBox="0 0 16 16">...</svg> تعديل بيانات التدريسي: {{ staff_member.name }}</h1>
+    <hr>
+
+    <div class="card card-body mb-4 shadow-sm border-warning">
+        <form method="POST" action="{{ url_for('edit_staff', staff_id=staff_member.id) }}" novalidate>
+            {{ form.hidden_tag() }}
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="{{ form.name.id }}" class="form-label">{{ form.name.label }}</label>
+                    {{ form.name(class="form-control " + ('is-invalid' if form.name.errors else '')) }}
+                    {% if form.name.errors %}<div class="invalid-feedback">{% for error in form.name.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+                </div>
+                 <div class="col-md-6">
+                    <label for="{{ form.total_days_per_week.id }}" class="form-label">{{ form.total_days_per_week.label }}</label>
+                    {{ form.total_days_per_week(class="form-select " + ('is-invalid' if form.total_days_per_week.errors else '')) }}
+                    {% if form.total_days_per_week.errors %}<div class="invalid-feedback">{% for error in form.total_days_per_week.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+                </div>
+                {# ====> عرض حقل المسؤولية الرئيسية <==== #}
+                 <div class="col-md-6">
+                    <label for="{{ form.primary_responsibility.id }}" class="form-label">{{ form.primary_responsibility.label }}</label>
+                    {{ form.primary_responsibility(class="form-control " + ('is-invalid' if form.primary_responsibility.errors else ''), placeholder="مثل: مسؤول الموقف اليومي") }}
+                    {% if form.primary_responsibility.errors %}<div class="invalid-feedback">{% for error in form.primary_responsibility.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+                </div>
+                 {# ====> عرض حقل اختيار البديل <==== #}
+                 <div class="col-md-6">
+                    <label for="{{ form.backup_for_staff_id.id }}" class="form-label">{{ form.backup_for_staff_id.label }}</label>
+                    {{ form.backup_for_staff_id(class="form-select " + ('is-invalid' if form.backup_for_staff_id.errors else '')) }}
+                    {% if form.backup_for_staff_id.errors %}<div class="invalid-feedback">{% for error in form.backup_for_staff_id.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+                    <div class="form-text">اختر الموظف الذي سيكون هذا الشخص بديلاً له في حال غيابه.</div>
+                </div>
+                <div class="col-12">
+                    <label for="{{ form.notes.id }}" class="form-label">{{ form.notes.label }}</label>
+                    {{ form.notes(class="form-control " + ('is-invalid' if form.notes.errors else '')) }}
+                    {% if form.notes.errors %}<div class="invalid-feedback">{% for error in form.notes.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
+                </div>
+                <div class="col-12">
+                    <div class="form-check">
+                        {{ form.is_active(class="form-check-input") }}
+                        <label class="form-check-label" for="{{ form.is_active.id }}">{{ form.is_active.label.text }}</label>
+                    </div>
+                </div>
+                <div class="col-12 mt-3">
+                    {{ form.submit(class="btn btn-primary me-2") }}
+                    <a href="{{ url_for('staff_list') }}" class="btn btn-secondary">إلغاء</a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+     <a href="{{ url_for('staff_list') }}" class="btn btn-link">
+         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right-circle" viewBox="0 0 16 16">...</svg>
+         العودة إلى قائمة التدريسيين
+    </a>
+
+</div> {# End container #}
+{% endblock %}
